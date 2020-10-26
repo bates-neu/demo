@@ -7,5 +7,5 @@ os: linux
 #    destination: /webapps/myApp
 hooks:
   ApplicationStart:
-    - location: deploy/stop.sh
-    - location: deploy/start.sh
+    - location: ./stop.sh
+    - location: ./start.sh
