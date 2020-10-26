@@ -45,7 +45,7 @@ jobs:
       
       - name: deploy api call
         run: |
-          output= $(aws deploy create-deployment --application-name ${{env.CODEDEPLOY_APPLICATION_NAME}} --region ${{env.AWS_REGION}} --deployment-group-name demo-group --output json --s3-location bucket=bingcheng-demo-deploy,bundleType=zip,key=${{env.ARTIFACT_NAME}})
+          output=$(aws deploy create-deployment --application-name ${{env.CODEDEPLOY_APPLICATION_NAME}} --region ${{env.AWS_REGION}} --deployment-group-name demo-group --output json --s3-location bucket=bingcheng-demo-deploy,bundleType=zip,key=${{env.ARTIFACT_NAME}})
           echo $output
           dId=$(echo $output | jq -r '.deploymentId')
           echo $dId
