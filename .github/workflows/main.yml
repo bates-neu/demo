@@ -1,0 +1,55 @@
+# This is a basic workflow to help you get started with Actions
+
+name: CI
+
+# Controls when the action will run. Triggers the workflow on push or pull request
+# events but only for the main branch
+on:
+  push:
+    branches: [ main ]
+
+env:
+  ARTIFACT_NAME: webapp-${{github.run_number}}.zip
+  S3_CODE_BUCKET: bingcheng-demo-deploy
+  CODEDEPLOY_APPLICATION_NAME: demo
+  CODEDEPLOY_APPLICATION_DEPLOYMENT_GROUP_NAME: demo-group
+  AWS_REGION: us-east-1
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      - name: zip files
+        run: |
+          zip -r ${{env.ARTIFACT_NAME}} .
+          ls -la
+          mkdir codedeploy_artifact
+          mv ${{env.ARTIFACT_NAME}} codedeploy_artifact/
+
+      - name: Configure AWS 
+        uses: aws-actions/configure-aws-credentials@v1
+        with: 
+          aws-access-key-id: ${{secrets.AWS_ACCESS_KEY_ID}}
+          aws-secret-access-key: ${{secrets.AWS_SECRET_ACCESS_KEY}}
+          aws-region: ${{env.AWS_REGION}}
+      
+      - name: copy to s3
+        run: aws s3 sync ./codedeploy_artifact s3://${{env.S3_CODE_BUCKET}}
+      
+      - name: deploy api call
+        run: |
+          output= $(aws deploy create-deployment --application-name ${{env.CODEDEPLOY_APPLICATION_NAME}} --region ${{env.AWS_REGION}} --deployment-group-name demo-group --output json --s3-location bucket=bingcheng-demo-deploy,bundleType=zip,key=${{env.ARTIFACT_NAME}})
+          echo $output
+          dId=$(echo $output | jq -r '.deploymentId')
+          echo $dId
+          aws deploy wait deployment-successful --deployment-id $dId
+    
+        
+      
