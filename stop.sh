@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ -f ~/server.pid  ]; then
-kill -9 $(cat ~/server.pid )
+if [ -f /home/demo/server.pid  ]; then
+kill -9 $(cat /home/demo/server.pid )
 fi
 
